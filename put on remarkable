@@ -1,0 +1,32 @@
+#!/bin/bash
+
+DIR_FILE=".rmdir"
+title="rM API"
+declare rmdir
+
+if [ -f ./$DIR_FILE ]
+then
+    rmdir=`cat $DIR_FILE`
+else
+    if [ -f ../$DIR_FILE ]
+    then
+        rmdir=`cat ../$DIR_FILE`
+    else
+        if ! rmdir=`zenity --forms --add-entry "Ordner auf reMarkable:" --title "$title" --text "Gib den Ordner auf dem reMarkable an"`
+        then
+            exit;
+        fi
+
+        if zenity --question --text="Auswahl für den aktuellen Ordner speichern?"
+        then
+            echo $rmdir > $DIR_FILE
+        fi
+    fi
+fi
+
+IFS=$'\n'
+echo "$rmdir"
+for file in $NEMO_SCRIPT_SELECTED_FILE_PATHS
+do
+    rmapi put "$file" "$rmdir"
+done 2>&1 | zenity --text-info --title "$title"
