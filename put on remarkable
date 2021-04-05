@@ -12,6 +12,8 @@ then
 else
     # check if relative path creation is possible and confirmed by user
     cwd="." # current directory in which we search for the DIR_FILE file
+    mkfifi progress_pipe
+    zenity --progress --auto-close --auto-kill --title "Suche in Unterverzeichnissen nach \".rmdir\"" < progress_pipe
     for (( i=1; i<=$level; i++ ))
     do
         cwd=$cwd/..
@@ -20,10 +22,11 @@ else
             pwd_diff=${PWD#`realpath $cwd`}
             rmdir="`cat $cwd/$DIR_FILE`$pwd_diff"
             ! ( `zenity --question --title "Relative Pfad" --ellipsize --text "Keine \"$DIR_FILE\" Datei im aktuellen Verzeichnis gefunden.\n\nRelativ ermittelten Pfad \"$rmdir\" verwenden?"` ) && unset rmdir
+            echo 100 > progress_pipe
             break
         fi
-    echo $(($i/$level * 100))
-    done | zenity --progress --auto-close --auto-kill --title "Suche in Unterverzeichnissen nach \".rmdir\""
+        echo $(($i/$level * 100)) > progress_pipe
+    done
 
     # get custom user input path
     if [ -z $rmdir ]
