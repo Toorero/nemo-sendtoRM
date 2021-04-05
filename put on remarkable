@@ -3,20 +3,37 @@
 DIR_FILE=".rmdir"
 title="rM API"
 declare rmdir
+level=5
+
 
 if [ -f ./$DIR_FILE ]
 then
     rmdir=`cat $DIR_FILE`
 else
-    if [ -f ../$DIR_FILE ]
+    # check if relative path creation is possible and confirmed by user
+    cwd="." # current directory in which we search for the DIR_FILE file
+    for (( i=1; i<=$level; i++ ))
+    do
+        cwd=$cwd/..
+        if [ -f "$cwd/$DIR_FILE" ]
+        then
+            pwd_diff=${PWD#`realpath $cwd`}
+            rmdir="`cat $cwd/$DIR_FILE`$pwd_diff"
+            ! ( `zenity --question --title "Relative Pfad" --ellipsize --text "Keine \"$DIR_FILE\" Datei im aktuellen Verzeichnis gefunden.\n\nRelativ ermittelten Pfad \"$rmdir\" verwenden?"` ) && unset rmdir
+            break
+        fi
+    echo $(($i/$level * 100))
+    done | zenity --progress --auto-close --auto-kill --title "Suche in Unterverzeichnissen nach \".rmdir\""
+
+    # get custom user input path
+    if [ -z $rmdir ]
     then
-        rmdir=`cat ../$DIR_FILE`
-    else
         if ! rmdir=`zenity --forms --add-entry "Ordner auf reMarkable:" --title "$title" --text "Gib den Ordner auf dem reMarkable an"`
         then
             exit;
         fi
 
+        # and maybe save it
         if zenity --question --text="Auswahl für den aktuellen Ordner speichern?"
         then
             echo $rmdir > $DIR_FILE
@@ -24,8 +41,11 @@ else
     fi
 fi
 
+# upload files
+
+rmapi mkdir $rmdir # just to be sure it exists
+
 IFS=$'\n'
-echo "$rmdir"
 for file in $NEMO_SCRIPT_SELECTED_FILE_PATHS
 do
     rmapi put "$file" "$rmdir"
