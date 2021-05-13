@@ -27,7 +27,8 @@ else
         fi
         echo $(($i/$level * 100)) > progress_pipe
     done
-
+    rm progress_pipe
+    
     # get custom user input path
     if [ -z $rmdir ]
     then
@@ -46,7 +47,16 @@ fi
 
 # upload files
 
-rmapi mkdir $rmdir # just to be sure it exists
+# simulate rmapi mkdir -p $rmdir
+traversed=""
+IFS="/"
+for i in ${rmdir#/}
+do
+	traversed="$traversed/$i"
+	rmapi mkdir "$traversed"
+done
+
+
 
 IFS=$'\n'
 for file in $NEMO_SCRIPT_SELECTED_FILE_PATHS
