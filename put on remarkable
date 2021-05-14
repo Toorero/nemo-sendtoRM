@@ -6,9 +6,9 @@ declare rmdir
 MAX_LEVEL=5
 
 
-if [ -f ./$DIR_FILE ]
+if [ -f "./$DIR_FILE" ]
 then
-    rmdir=`cat $DIR_FILE`
+    rmdir=$(cat "$DIR_FILE")
 else
     # check if relative path creation is possible and confirmed by user
     cwd="." # current directory in which we search for the DIR_FILE file
@@ -16,31 +16,28 @@ else
     zenity --progress --auto-close --auto-kill --title "Suche in Unterverzeichnissen nach \".rmdir\"" < progress_pipe
     for (( i=1; i<=$MAX_LEVEL; i++ ))
     do
-        cwd=$cwd/..
+        cwd="$cwd/.."
         if [ -f "$cwd/$DIR_FILE" ]
         then
-            pwd_diff=${PWD#`realpath $cwd`}
-            rmdir="`cat $cwd/$DIR_FILE`$pwd_diff"
-            ! ( `zenity --question --title "Relative Pfad" --ellipsize --text "Keine \"$DIR_FILE\" Datei im aktuellen Verzeichnis gefunden.\n\nRelativ ermittelten Pfad \"$rmdir\" verwenden?"` ) && unset rmdir
+            pwd_diff="${PWD#$(realpath $cwd)}"
+            rmdir="$(cat $cwd/$DIR_FILE)$pwd_diff"
+            ! $(zenity --question --title "Relative Pfad" --ellipsize --text "Keine \"$DIR_FILE\" Datei im aktuellen Verzeichnis gefunden.\n\nRelativ ermittelten Pfad \"$rmdir\" verwenden?") && unset rmdir
             echo 100 > progress_pipe
             break
         fi
         echo $(($i/$MAX_LEVEL * 100)) > progress_pipe
     done
     rm progress_pipe
-    
+
     # get custom user input path
-    if [ -z $rmdir ]
+    if [ -z "$rmdir" ]
     then
-        if ! rmdir=`zenity --forms --add-entry "Ordner auf reMarkable:" --title "$title" --text "Gib den Ordner auf dem reMarkable an"`
-        then
-            exit;
-        fi
+        ! rmdir=$(zenity --forms --add-entry "Ordner auf reMarkable:" --title "$title" --text "Gib den Ordner auf dem reMarkable an") && exit
 
         # and maybe save it
         if zenity --question --text="Auswahl für den aktuellen Ordner speichern?"
         then
-            echo $rmdir > $DIR_FILE
+            echo "$rmdir" > "$DIR_FILE"
         fi
     fi
 fi
@@ -59,7 +56,7 @@ done
 
 
 IFS=$'\n'
-for file in $NEMO_SCRIPT_SELECTED_FILE_PATHS
+for file in "$NEMO_SCRIPT_SELECTED_FILE_PATHS"
 do
     rmapi put "$file" "$rmdir"
 done 2>&1 | zenity --text-info --title "$title"
