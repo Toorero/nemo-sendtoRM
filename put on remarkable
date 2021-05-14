@@ -3,7 +3,7 @@
 DIR_FILE=".rmdir"
 title="rM API"
 declare rmdir
-level=5
+MAX_LEVEL=5
 
 
 if [ -f ./$DIR_FILE ]
@@ -14,7 +14,7 @@ else
     cwd="." # current directory in which we search for the DIR_FILE file
     mkfifi progress_pipe
     zenity --progress --auto-close --auto-kill --title "Suche in Unterverzeichnissen nach \".rmdir\"" < progress_pipe
-    for (( i=1; i<=$level; i++ ))
+    for (( i=1; i<=$MAX_LEVEL; i++ ))
     do
         cwd=$cwd/..
         if [ -f "$cwd/$DIR_FILE" ]
@@ -25,7 +25,7 @@ else
             echo 100 > progress_pipe
             break
         fi
-        echo $(($i/$level * 100)) > progress_pipe
+        echo $(($i/$MAX_LEVEL * 100)) > progress_pipe
     done
     rm progress_pipe
     
