@@ -1,6 +1,8 @@
 #!/bin/bash
 
 DIR_FILE=".rmdir"
+# subdirs are not going to be added to relative path
+IGNORE_FILE=".rmignore"
 title="rM API"
 declare rmdir
 MAX_LEVEL=5
@@ -17,11 +19,14 @@ else
     for (( i=1; i<=$MAX_LEVEL; i++ ))
     do
         cwd="$cwd/.."
+        [ -f "$cwd/$IGNORE_FILE" ] && pwd_ignore=$(basename "$(realpath ${cwd%/..})")
         if [ -f "$cwd/$DIR_FILE" ]
         then
             pwd_diff="${PWD#$(realpath $cwd)}"
             rmdir="$(cat $cwd/$DIR_FILE)$pwd_diff"
-            ! $(zenity --question --title "Relative Pfad" --ellipsize --text "Keine \"$DIR_FILE\" Datei im aktuellen Verzeichnis gefunden.\n\nRelativ ermittelten Pfad \"$rmdir\" verwenden?") && unset rmdir
+            # todo fix possible prefix error
+            [ -n "$pwd_ignore" ] && rmdir="${rmdir%%/$pwd_ignore*}" \
+            || { ! $(zenity --question --title "Relative Pfad" --ellipsize --text "Keine \"$DIR_FILE\" Datei im aktuellen Verzeichnis gefunden.\n\nRelativ ermittelten Pfad \"$rmdir\" verwenden?") && unset rmdir; }
             echo 100 > progress_pipe
             break
         fi
@@ -56,7 +61,7 @@ done
 
 
 IFS=$'\n'
-for file in "$NEMO_SCRIPT_SELECTED_FILE_PATHS"
+for file in $NEMO_SCRIPT_SELECTED_FILE_PATHS
 do
     rmapi put "$file" "$rmdir"
 done 2>&1 | zenity --text-info --title "$title"
