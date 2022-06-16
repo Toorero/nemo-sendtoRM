@@ -3,10 +3,11 @@
 DIR_FILE=".rmdir"
 # subdirs are not going to be added to relative path
 IGNORE_FILE=".rmignore"
-title="rM API"
+TITLE="rM API"
 declare rmdir
 MAX_LEVEL=5
 
+SELECTED_FILE_PATHS="${NEMO_SCRIPT_SELECTED_FILE_PATHS:-$NAUTILUS_SCRIPT_SELECTED_FILE_PATHS}"
 
 if [ -f "./$DIR_FILE" ]
 then
@@ -14,11 +15,12 @@ then
 else
     # check if relative path creation is possible and confirmed by user
     cwd="." # current directory in which we search for the DIR_FILE file
-    mkfifi progress_pipe
-    zenity --progress --auto-close --auto-kill --title "Suche in Unterverzeichnissen nach \".rmdir\"" < progress_pipe
     for (( i=1; i<=$MAX_LEVEL; i++ ))
     do
         cwd="$cwd/.."
+        echo $(( $i/$MAX_LEVEL * 100 ))
+        echo "# Suche nach \"$DIR_FILE\" Datei"
+
         [ -f "$cwd/$IGNORE_FILE" ] && pwd_ignore=$(basename "$(realpath ${cwd%/..})")
         if [ -f "$cwd/$DIR_FILE" ]
         then
@@ -27,13 +29,11 @@ else
             # todo fix possible prefix error
             [ -n "$pwd_ignore" ] && rmdir="${rmdir%%/$pwd_ignore*}" \
             || { ! $(zenity --question --title "Relative Pfad" --ellipsize --text "Keine \"$DIR_FILE\" Datei im aktuellen Verzeichnis gefunden.\n\nRelativ ermittelten Pfad \"$rmdir\" verwenden?") && unset rmdir; }
-            echo 100 > progress_pipe
+            echo 100
             break
         fi
-        echo $(($i/$MAX_LEVEL * 100)) > progress_pipe
-    done
-    rm progress_pipe
-
+    done | zenity --progress --auto-close --title "Suche in Unterverzeichnissen nach \".rmdir\""
+    
     # get custom user input path
     if [ -z "$rmdir" ]
     then
@@ -61,7 +61,9 @@ done
 
 
 IFS=$'\n'
-for file in $NEMO_SCRIPT_SELECTED_FILE_PATHS
+for file in $SELECTED_FILE_PATHS
 do
+    echo "Hochladen von $file"
     rmapi put "$file" "$rmdir"
-done 2>&1 | zenity --text-info --title "$title"
+    echo
+done 2>&1 | zenity --text-info --title "$TITLE"
