@@ -1,0 +1,11 @@
+[Nemo Action]
+Name=Send to reMarkable
+Name[de]=An reMarkable senden
+Comment=Send the file to the reMarkable
+Comment[de]=Sende die Datei zum reMarkable
+Exec=<send-to-rM.sh %F>
+Icon-Name=document-export
+Selection=notnone
+Mimetypes=application/pdf;image/jpeg;image/png;application/epub+zip;
+Dependencies=rmapi;zenity;
+Quote=double
