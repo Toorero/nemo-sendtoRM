@@ -4,9 +4,7 @@
 : ${TITLE:="rM API"}
 : ${MAX_LEVEL:=5}
 declare rmdir
-: ${SELECTED_FILE_PATHS:=$1} # nemo action
-: ${SELECTED_FILE_PATHS:=$NEMO_SCRIPT_SELECTED_FILE_PATHS} # nemo script
-: ${SELECTED_FILE_PATHS:=$NAUTILUS_SCRIPT_SELECTED_FILE_PATHS} # nautilus script
+SELECTED_FILE_PATHS=("$@")
 
 # fix for nemo action
 cd "$(dirname "$SELECTED_FILE_PATHS[0]")"
@@ -64,7 +62,7 @@ fi
 rmapi_mkdir_p "$rmdir"
 
 IFS=$'\n'
-for file in $SELECTED_FILE_PATHS
+for file in "${SELECTED_FILE_PATHS[@]}"
 do
     echo "Hochladen von $file"
     rmapi put "$file" "$rmdir"
