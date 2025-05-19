@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: EUPL-1.2
+
 [Nemo Action]
 Name=Send to reMarkable
 Name[de]=An reMarkable senden

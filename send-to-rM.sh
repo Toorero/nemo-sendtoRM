@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# SPDX-License-Identifier: EUPL-1.2
+
 : ${DIR_FILE:=".rmdir"}
 : ${TITLE:="rM API"}
 : ${MAX_LEVEL:=5}
